@@ -1,1 +1,47 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Budget Calculator</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <h1>Budget Calculator</h1>
+  
+  <label for="income">Income:</label>
+  <input type="number" id="income">
+  
+  <label for="expenses">Expenses:</label>
+  <input type="number" id="expenses">
+  
+  <button onclick="calculateBudget()">Calculate</button>
+  
+  <div id="chart"></div>
+  
+  <script>
+    function calculateBudget() {
+      var income = parseFloat(document.getElementById("income").value);
+      var expenses = parseFloat(document.getElementById("expenses").value);
+      
+      var savings = income - expenses;
+      var budgetData = [
+        { label: "Income", value: income },
+        { label: "Expenses", value: expenses },
+        { label: "Savings", value: savings }
+      ];
+      
+      // Plotly chart
+      var data = [{
+        values: budgetData.map(item => item.value),
+        labels: budgetData.map(item => item.label),
+        type: 'pie'
+      }];
+      
+      var layout = {
+        title: 'Budget Breakdown'
+      };
+      
+      Plotly.newPlot('chart', data, layout);
+    }
+  </script>
+</body>
+</html>
