@@ -10,37 +10,92 @@
   <label for="income">Income:</label>
   <input type="number" id="income">
   
-  <label for="expenses">Expenses:</label>
-  <input type="number" id="expenses">
+  <label for="expenseName">Expense Name:</label>
+  <input type="text" id="expenseName">
+  
+  <label for="expenseValue">Expense Value:</label>
+  <input type="number" id="expenseValue">
+  
+  <button onclick="addExpense()">Add Expense</button>
+  
+  <ul id="expenseList"></ul>
   
   <button onclick="calculateBudget()">Calculate</button>
   
   <div id="chart"></div>
   
   <script>
+    var expenses = [];
+    
+    function addExpense() {
+      var expenseName = document.getElementById("expenseName").value;
+      var expenseValue = parseFloat(document.getElementById("expenseValue").value);
+      
+      if (!isNaN(expenseValue) && expenseName !== "") {
+        expenses.push({ name: expenseName, value: expenseValue });
+        
+        document.getElementById("expenseName").value = "";
+        document.getElementById("expenseValue").value = "";
+        
+        var expenseList = document.getElementById("expenseList");
+        var listItem = document.createElement("li");
+        listItem.appendChild(document.createTextNode(expenseName + ": $" + expenseValue.toFixed(2)));
+        expenseList.appendChild(listItem);
+      }
+    }
+    
     function calculateBudget() {
       var income = parseFloat(document.getElementById("income").value);
-      var expenses = parseFloat(document.getElementById("expenses").value);
+      var totalExpenses = expenses.reduce((acc, curr) => acc + curr.value, 0);
+      var savings = income - totalExpenses;
       
-      var savings = income - expenses;
       var budgetData = [
         { label: "Income", value: income },
-        { label: "Expenses", value: expenses },
+        { label: "Expenses", value: totalExpenses },
         { label: "Savings", value: savings }
       ];
+      
+      // Check if there is a deficit
+      var deficit = savings < 0;
       
       // Plotly chart
       var data = [{
         values: budgetData.map(item => item.value),
         labels: budgetData.map(item => item.label),
-        type: 'pie'
+        type: 'pie',
+        textinfo: 'label+percent',
+        textposition: 'inside',
+        hoverinfo: 'label',
+        hole: 0.4,
+        marker: {
+          colors: ['rgba(0, 204, 0, 0.6)', 'rgba(204, 0, 0, 0.6)', 'rgba(0, 0, 204, 0.6)']
+        }
       }];
       
       var layout = {
-        title: 'Budget Breakdown'
+        title: 'Budget Breakdown',
+        annotations: [{
+          font: {
+            size: 20
+          },
+          showarrow: false,
+          text: deficit ? 'Deficit' : '',
+          x: 0.5,
+          y: 0.5
+        }]
       };
       
       Plotly.newPlot('chart', data, layout);
+      
+      // Export to CSV file
+      var csvContent = "data:text/csv;charset=utf-8,"
+        + budgetData.map(item => Object.values(item).join(",")).join("\n");
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "budget.csv");
+      document.body.appendChild(link);
+      link.click();
     }
   </script>
 </body>
